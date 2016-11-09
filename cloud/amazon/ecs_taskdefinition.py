@@ -52,6 +52,11 @@ options:
             - A list of names of volumes to be attached
         required: False
         type: list of name
+    networkMode:
+        description:
+            - network mode: [bridge|host|none]
+        required: False
+        type: str
 extends_documentation_fragment:
     - aws
     - ec2
@@ -88,6 +93,7 @@ EXAMPLES = '''
     - name: my-vol
     family: test-cluster-taskdef
     state: present
+    networkMode: bridge
   register: task_output
 '''
 RETURN = '''
@@ -133,9 +139,9 @@ class EcsTaskManager:
         except botocore.exceptions.ClientError:
             return None
 
-    def register_task(self, family, container_definitions, volumes):
+    def register_task(self, family, container_definitions, volumes, networkMode):
         response = self.ecs.register_task_definition(family=family,
-            containerDefinitions=container_definitions, volumes=volumes)
+            containerDefinitions=container_definitions, volumes=volumes, networkMode=networkMode)
         return response['taskDefinition']
 
     def describe_task_definitions(self, family):
@@ -178,7 +184,8 @@ def main():
         family=dict(required=False, type='str'),
         revision=dict(required=False, type='int'),
         containers=dict(required=False, type='list'),
-        volumes=dict(required=False, type='list')
+        volumes=dict(required=False, type='list'),
+        networkMode=dict(required=False, type='str')
     ))
 
     module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)
@@ -304,8 +311,10 @@ def main():
             if not module.check_mode:
                 # Doesn't exist. create it.
                 volumes = module.params.get('volumes', []) or []
+                networkMode = module.params.get('networkMode', 'bridge')
                 results['taskdefinition'] = task_mgr.register_task(module.params['family'],
-                                                                   module.params['containers'], volumes)
+                                                                   module.params['containers'], volumes
+                                                                   networkMode)
             results['changed'] = True
 
     elif module.params['state'] == 'absent':
