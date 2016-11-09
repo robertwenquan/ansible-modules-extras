@@ -313,7 +313,7 @@ def main():
                 volumes = module.params.get('volumes', []) or []
                 networkMode = module.params.get('networkMode', 'bridge')
                 results['taskdefinition'] = task_mgr.register_task(module.params['family'],
-                                                                   module.params['containers'], volumes
+                                                                   module.params['containers'], volumes,
                                                                    networkMode)
             results['changed'] = True
 
