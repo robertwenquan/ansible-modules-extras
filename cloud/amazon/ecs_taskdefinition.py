@@ -54,7 +54,7 @@ options:
         type: list of name
     networkMode:
         description:
-            - network mode: [bridge|host|none]
+            - network mode. default is bridge. could be bridge, host or none
         required: False
         version_added: 2.3
         type: str
